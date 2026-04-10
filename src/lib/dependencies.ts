@@ -6,6 +6,9 @@ import { UpdateOrderStatusUseCase } from "./application/use-cases/UpdateOrderSta
 import { GetAvailableMenuUseCase } from "./application/use-cases/GetAvailableMenuUseCase";
 import { CreateDailyClosureUseCase } from "./application/use-cases/CreateDailyClosureUseCase";
 import { GetDailySummaryUseCase } from "./application/use-cases/GetDailySummaryUseCase";
+import { GetDonationsUseCase } from "./application/use-cases/GetDonationsUseCase";
+import { GetProductsUseCase } from "./application/use-cases/GetProductsUseCase";
+import { ProcessSaleUseCase } from "./application/use-cases/ProcessSaleUseCase";
 
 // Infrastructure
 import { GoogleSheetsClient } from "./infrastructure/config/GoogleSheetsClient";
@@ -14,6 +17,9 @@ import { GoogleSheetsOrderRepository } from "./infrastructure/repositories/Googl
 import { GoogleSheetsMenuItemRepository } from "./infrastructure/repositories/GoogleSheetsMenuItemRepository";
 import { GoogleSheetsCategoryRepository } from "./infrastructure/repositories/GoogleSheetsCategoryRepository";
 import { GoogleSheetsDailyClosureRepository } from "./infrastructure/repositories/GoogleSheetsDailyClosureRepository";
+import { GoogleSheetsDonationRepository } from "./infrastructure/repositories/GoogleSheetsDonationRepository";
+import { GoogleSheetsProductRepository } from "./infrastructure/repositories/GoogleSheetsProductRepository";
+import { GoogleSheetsTransactionRepository } from "./infrastructure/repositories/GoogleSheetsTransactionRepository";
 
 export function getDependencies() {
   // Inicializar Google Sheets Client
@@ -29,6 +35,11 @@ export function getDependencies() {
   const menuItemRepository = new GoogleSheetsMenuItemRepository(sheetsClient);
   const categoryRepository = new GoogleSheetsCategoryRepository(sheetsClient);
   const dailyClosureRepository = new GoogleSheetsDailyClosureRepository(
+    sheetsClient,
+  );
+  const donationRepository = new GoogleSheetsDonationRepository(sheetsClient);
+  const productRepository = new GoogleSheetsProductRepository(sheetsClient);
+  const transactionRepository = new GoogleSheetsTransactionRepository(
     sheetsClient,
   );
 
@@ -54,6 +65,12 @@ export function getDependencies() {
     orderRepository,
     dailyClosureRepository,
   );
+  const getDonationsUseCase = new GetDonationsUseCase(donationRepository);
+  const getProductsUseCase = new GetProductsUseCase(productRepository);
+  const processSaleUseCase = new ProcessSaleUseCase(
+    productRepository,
+    transactionRepository,
+  );
 
   return {
     // Repositories
@@ -62,6 +79,9 @@ export function getDependencies() {
     menuItemRepository,
     categoryRepository,
     dailyClosureRepository,
+    donationRepository,
+    productRepository,
+    transactionRepository,
     // Use Cases
     loginUseCase,
     createOrderUseCase,
@@ -70,5 +90,8 @@ export function getDependencies() {
     getAvailableMenuUseCase,
     createDailyClosureUseCase,
     getDailySummaryUseCase,
+    getDonationsUseCase,
+    getProductsUseCase,
+    processSaleUseCase,
   };
 }

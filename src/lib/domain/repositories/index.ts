@@ -1,5 +1,5 @@
-export { IOrderRepository } from "./IOrderRepository";
-export { IMenuItemRepository } from "./IMenuItemRepository";
-export { ICategoryRepository } from "./ICategoryRepository";
-export { IWaiterRepository } from "./IWaiterRepository";
-export { IDailyClosureRepository } from "./IDailyClosureRepository";
+export type { IOrderRepository } from "./IOrderRepository";
+export type { IMenuItemRepository } from "./IMenuItemRepository";
+export type { ICategoryRepository } from "./ICategoryRepository";
+export type { IWaiterRepository } from "./IWaiterRepository";
+export type { IDailyClosureRepository } from "./IDailyClosureRepository";

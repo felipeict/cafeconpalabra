@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { Avatar } from "@/components/common/Avatar";
@@ -12,7 +12,7 @@ interface Waiter {
   activo: boolean;
 }
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/pos";
@@ -153,5 +153,23 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Wrapper con Suspense para manejar useSearchParams
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-primary-300 to-primary-200 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-900">Cargando...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
