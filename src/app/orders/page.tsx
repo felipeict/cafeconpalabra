@@ -37,7 +37,7 @@ type FilterType =
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, waiter, logout } = useAuthStore();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<FilterType>("pendiente");
@@ -46,16 +46,16 @@ export default function OrdersPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !waiter) {
       router.push("/login?returnUrl=/orders");
       return;
     }
     fetchOrders();
 
-    // Auto-refresh every 30 seconds
+    // Auto-refresh every 10 seconds
     const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, waiter, router]);
 
   const fetchOrders = async (showRefreshing = false) => {
     try {
@@ -65,7 +65,11 @@ export default function OrdersPage() {
         setIsLoading(true);
       }
 
-      const response = await fetch("/api/orders?fecha=today");
+      // Filtrar órdenes por el mesero autenticado
+      const garzonId = waiter?.id || "";
+      const response = await fetch(
+        `/api/orders?fecha=today&garzonId=${garzonId}`,
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -138,13 +142,13 @@ export default function OrdersPage() {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold">Órdenes del Día</h1>
+              <h1 className="text-xl font-bold">Mis Órdenes</h1>
               <p className="text-sm text-primary-100">
+                {waiter?.nombre} •{" "}
                 {new Date().toLocaleDateString("es-ES", {
                   weekday: "long",
-                  year: "numeric",
-                  month: "long",
                   day: "numeric",
+                  month: "long",
                 })}
               </p>
             </div>
