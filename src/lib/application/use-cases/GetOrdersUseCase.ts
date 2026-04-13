@@ -20,4 +20,13 @@ export class GetOrdersUseCase {
     const today = new Date().toISOString().split("T")[0];
     return await this.orderRepository.getByDate(today);
   }
+
+  async getOrdersByWaiter(garzonId: string, fecha?: string): Promise<Order[]> {
+    return await this.orderRepository.getByWaiter(garzonId, fecha);
+  }
+
+  async getTodayOrdersByWaiter(garzonId: string): Promise<Order[]> {
+    const today = new Date().toISOString().split("T")[0];
+    return await this.orderRepository.getByWaiter(garzonId, today);
+  }
 }

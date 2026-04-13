@@ -46,21 +46,35 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET - Obtener órdenes (opcionalmente por fecha)
+// GET - Obtener órdenes (opcionalmente por fecha o mesero)
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const fecha = searchParams.get("fecha");
+    const garzonId = searchParams.get("garzonId");
 
     const { getOrdersUseCase } = getDependencies();
 
     let orders;
-    if (fecha === "today") {
-      orders = await getOrdersUseCase.getTodayOrders();
-    } else if (fecha) {
-      orders = await getOrdersUseCase.execute(fecha);
+
+    // Si hay garzonId, filtrar por mesero
+    if (garzonId) {
+      if (fecha === "today") {
+        orders = await getOrdersUseCase.getTodayOrdersByWaiter(garzonId);
+      } else if (fecha) {
+        orders = await getOrdersUseCase.getOrdersByWaiter(garzonId, fecha);
+      } else {
+        orders = await getOrdersUseCase.getOrdersByWaiter(garzonId);
+      }
     } else {
-      orders = await getOrdersUseCase.execute();
+      // Sin garzonId, mostrar todas las órdenes (para cocina)
+      if (fecha === "today") {
+        orders = await getOrdersUseCase.getTodayOrders();
+      } else if (fecha) {
+        orders = await getOrdersUseCase.execute(fecha);
+      } else {
+        orders = await getOrdersUseCase.execute();
+      }
     }
 
     return NextResponse.json(orders);
