@@ -49,6 +49,8 @@ export default function KitchenPage() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const previousOrdersRef = useRef<string[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const soundEnabledRef = useRef(false); // Ref para acceder al valor en callbacks
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -96,9 +98,16 @@ export default function KitchenPage() {
           if (newOrders.length > 0) {
             setNewOrdersCount(newOrders.length);
 
-            // Reproducir sonido si está habilitado
-            if (soundEnabled) {
+            // Reproducir sonido si está habilitado (usar ref para valor actual)
+            if (soundEnabledRef.current) {
+              console.log(
+                `🎵 ${newOrders.length} nueva(s) orden(es) detectada(s) - Reproduciendo melodía...`,
+              );
               playNotificationSound();
+            } else {
+              console.log(
+                `📋 ${newOrders.length} nueva(s) orden(es) detectada(s) - Sonido deshabilitado`,
+              );
             }
 
             // Limpiar contador después de 5 segundos
@@ -121,23 +130,92 @@ export default function KitchenPage() {
     }
   };
 
-  const playNotificationSound = () => {
-    // Usar Web Audio API para un sonido simple
-    const audioContext = new (
-      window.AudioContext || (window as any).webkitAudioContext
-    )();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+  const playNotificationSound = async () => {
+    try {
+      console.log("🎵 Reproduciendo notificación suave...");
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+      // Crear o reusar AudioContext
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (
+          window.AudioContext || (window as any).webkitAudioContext
+        )();
+      }
 
-    oscillator.frequency.value = 800;
-    oscillator.type = "sine";
-    gainNode.gain.value = 0.3;
+      const audioContext = audioContextRef.current;
 
-    oscillator.start();
-    setTimeout(() => oscillator.stop(), 200);
+      // Reanudar el contexto si está suspendido
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+
+      // Función helper para crear una nota musical suave
+      const createNote = (
+        frequency: number,
+        startTime: number,
+        duration: number,
+        volume: number = 0.15,
+      ) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Onda suave tipo sine (la más pura y agradable)
+        oscillator.type = "sine";
+        oscillator.frequency.value = frequency;
+
+        // Envelope suave: ataque gradual y fade out natural
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.05); // Ataque suave
+        gainNode.gain.linearRampToValueAtTime(
+          volume * 0.7,
+          startTime + duration * 0.3,
+        ); // Sustain
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Fade out suave
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+
+        return { oscillator, gainNode };
+      };
+
+      const now = audioContext.currentTime;
+
+      // Melodía armoniosa: Sol - Si - Re - Sol (ascendente y cálida)
+      // Notas musicales suaves y elegantes, ideal para ambiente de café
+
+      // Primera nota: Sol (392 Hz) - cálida y acogedora
+      createNote(392, now, 0.4, 0.12);
+
+      // Segunda nota: Si (494 Hz) - dulce y armoniosa
+      createNote(494, now + 0.25, 0.4, 0.13);
+
+      // Tercera nota: Re (587 Hz) - brillante pero suave
+      createNote(587, now + 0.5, 0.5, 0.14);
+
+      // Nota final: Sol alto (784 Hz) - resolución armoniosa
+      createNote(784, now + 0.75, 0.6, 0.11);
+
+      console.log("✓ Notificación melódica reproducida");
+    } catch (error) {
+      console.error("❌ Error al reproducir sonido:", error);
+      // Fallback silencioso - no molestar al usuario con alerts
+    }
+  };
+
+  const handleSoundToggle = async () => {
+    const newSoundState = !soundEnabled;
+    setSoundEnabled(newSoundState);
+    soundEnabledRef.current = newSoundState; // Actualizar ref
+
+    // Reproducir sonido de prueba inmediatamente cuando se activa
+    if (newSoundState) {
+      console.log("🎵 Sonido activado - Reproduciendo melodía de prueba...");
+      await playNotificationSound();
+    } else {
+      console.log("🔇 Sonido desactivado");
+    }
   };
 
   const handleStatusChange = async (
@@ -217,7 +295,7 @@ export default function KitchenPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 lg:pb-6">
       {/* Header */}
-      <header className="bg-primary-600 text-white sticky top-0 z-40 shadow-lg">
+      <header className="bg-primary-600 text-white top-0 z-40 shadow-lg">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -234,12 +312,17 @@ export default function KitchenPage() {
             <div className="flex items-center gap-2">
               {/* Botón de sonido */}
               <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                onClick={handleSoundToggle}
                 className={`p-3 rounded-full transition-colors ${
                   soundEnabled
-                    ? "bg-white text-primary-600"
-                    : "bg-primary-500 text-white"
+                    ? "bg-white text-primary-600 shadow-lg"
+                    : "bg-primary-500 text-white hover:bg-primary-400"
                 }`}
+                title={
+                  soundEnabled
+                    ? "Sonido activado - Click para desactivar"
+                    : "Sonido desactivado - Click para activar"
+                }
               >
                 {soundEnabled ? (
                   <Volume2 className="w-5 h-5" />
