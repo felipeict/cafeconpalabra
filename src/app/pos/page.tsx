@@ -107,6 +107,13 @@ export default function POSPage() {
   };
 
   const handleAddItem = (menuItem: MenuItem) => {
+    // Validar que hay número de mesa
+    if (!numeroMesa || numeroMesa.trim() === "") {
+      setError("⚠️ Ingresa el número de mesa antes de agregar productos");
+      setTimeout(() => setError(""), 3000);
+      return;
+    }
+
     // Validar inventario antes de agregar
     if (menuItem.inventario !== undefined && menuItem.inventario !== null) {
       const currentQuantity = getItemQuantity(menuItem.id);
@@ -308,6 +315,26 @@ export default function POSPage() {
           </div>
         )}
 
+        {/* Aviso de número de mesa requerido */}
+        {!isLoading &&
+          filteredItems.length > 0 &&
+          (!numeroMesa || numeroMesa.trim() === "") && (
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4 flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                !
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-yellow-900 mb-1">
+                  Ingresa el número de mesa
+                </h3>
+                <p className="text-sm text-yellow-800">
+                  Debes ingresar el número de mesa antes de agregar productos al
+                  carrito.
+                </p>
+              </div>
+            </div>
+          )}
+
         {/* Menu Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredItems.map((item) => (
@@ -318,6 +345,7 @@ export default function POSPage() {
               onAdd={() => handleAddItem(item)}
               onRemove={() => handleRemoveItem(item.id)}
               maxQuantity={item.inventario}
+              disabled={!numeroMesa || numeroMesa.trim() === ""}
             />
           ))}
         </div>

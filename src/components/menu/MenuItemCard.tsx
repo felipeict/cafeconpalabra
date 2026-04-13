@@ -14,6 +14,7 @@ interface MenuItemCardProps {
   onAdd: () => void;
   onRemove?: () => void;
   maxQuantity?: number;
+  disabled?: boolean;
 }
 
 export const MenuItemCard = ({
@@ -22,6 +23,7 @@ export const MenuItemCard = ({
   onAdd,
   onRemove,
   maxQuantity,
+  disabled = false,
 }: MenuItemCardProps) => {
   const hasQuantity = quantity > 0;
   const hasInventory =
@@ -46,9 +48,11 @@ export const MenuItemCard = ({
   return (
     <div
       className={`relative bg-white rounded-xl shadow-sm border-2 transition-all duration-200 ${
-        hasQuantity
-          ? "border-primary-500 shadow-md scale-[1.02]"
-          : "border-gray-200 hover:border-primary-300 active:scale-[0.98]"
+        disabled
+          ? "border-gray-200 opacity-60"
+          : hasQuantity
+            ? "border-primary-500 shadow-md scale-[1.02]"
+            : "border-gray-200 hover:border-primary-300 active:scale-[0.98]"
       }`}
     >
       {/* Indicador de seleccionado */}
@@ -60,7 +64,7 @@ export const MenuItemCard = ({
 
       <button
         onClick={onAdd}
-        disabled={!item.disponible}
+        disabled={!item.disponible || disabled}
         className="w-full p-4 text-left disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div className="flex items-center justify-between">
@@ -88,8 +92,14 @@ export const MenuItemCard = ({
             )}
           </div>
 
-          {!hasQuantity && item.disponible && (
+          {!hasQuantity && item.disponible && !disabled && (
             <div className="ml-3 bg-primary-500 text-white rounded-full p-2">
+              <Plus className="w-5 h-5" />
+            </div>
+          )}
+
+          {disabled && !hasQuantity && (
+            <div className="ml-3 bg-gray-300 text-gray-500 rounded-full p-2">
               <Plus className="w-5 h-5" />
             </div>
           )}
